@@ -1,5 +1,5 @@
 // This file is a part of simple_audio
-// Copyright (c) 2022-2023 Erikas Taroza <erikastaroza@gmail.com>
+// Copyright (c) 2022-2025 Erikas Taroza <erikastaroza@gmail.com>
 //
 // This program is free software: you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public License as
@@ -14,32 +14,32 @@
 // You should have received a copy of the GNU Lesser General Public License along with this program.
 // If not, see <https://www.gnu.org/licenses/>.
 
-export 'bridge_definitions.dart' show ProgressState, PlaybackState;
+import "dart:async";
 
-import 'dart:async';
+import "rust/api/api.dart";
+import "rust/frb_generated.dart";
 
-import './ffi.dart' hide PlaybackState;
-import 'bridge_definitions.dart';
+export "rust/api/api.dart" hide PlayerWrapper, $ErrorCopyWith;
 
 late final PlayerWrapper _player;
 
 class SimpleAudio {
   late final Stream<Error> _error =
-      PlayerWrapper.errorStream(bridge: api).asBroadcastStream();
+      PlayerWrapper.errorStream().asBroadcastStream();
 
   /// A stream that returns the [Duration] of the file when it begins playing or looping.
   /// The [Duration] is meant to be used in a media controller to support seeking and progress bars.
   late Stream<Duration> playbackStarted =
-      PlayerWrapper.playbackStartedStream(bridge: api).asBroadcastStream();
+      PlayerWrapper.playbackStartedStream().asBroadcastStream();
 
   /// A stream that returns a [PlaybackState] when the state of the player is changed.
   late Stream<PlaybackState> playbackState =
-      PlayerWrapper.playbackStateStream(bridge: api).asBroadcastStream();
+      PlayerWrapper.playbackStateStream().asBroadcastStream();
 
   /// A stream that returns a [ProgressState] when the progress of the player
   /// or duration of the file is changed.
   late Stream<ProgressState> progressState =
-      PlayerWrapper.progressStateStream(bridge: api).asBroadcastStream();
+      PlayerWrapper.progressStateStream().asBroadcastStream();
 
   late Stream<String> decodeError = _error
       .where((error) => error is Error_Decode)
@@ -72,9 +72,10 @@ class SimpleAudio {
   /// This method should be awaited to make sure that the player is created
   /// before the app runs.
   static Future<void> init() async {
+    await RustLib.init();
     // Disposes of any old players and starts the Rust code from a fresh state.
-    PlayerWrapper.dispose(bridge: api);
-    _player = await PlayerWrapper.newPlayerWrapper(bridge: api);
+    PlayerWrapper.dispose();
+    _player = await PlayerWrapper.newInstance();
   }
 
   /// Open a new file for playback.
@@ -84,9 +85,12 @@ class SimpleAudio {
   ///
   /// **[autoplay]** Whether or not to immediately start playing the file when opened.
   ///
+  /// **[mimeType]** Optionally specify a mime type if the decoder cannot open the file
+  /// because it cannot create the format reader.
+  ///
   /// Throws [Error_Open] if the file couldn't be opened.
-  Future<void> open(String path, {bool autoplay = true}) =>
-      _player.open(path: path, autoplay: autoplay);
+  Future<void> open(String path, {bool autoplay = true, String? mimeType}) =>
+      _player.open(path: path, autoplay: autoplay, mimeType: mimeType);
 
   /// Plays the opened file. If the player was paused,
   /// this resumes it.
@@ -127,8 +131,12 @@ class SimpleAudio {
   /// the time spent loading between tracks (especially important
   /// for streaming network files).
   ///
+  /// **[mimeType]** Optionally specify a mime type if the decoder cannot open the file
+  /// because it cannot create the format reader.
+  ///
   /// Throws [Error_Preload] if the file couldn't be preloaded.
-  Future<void> preload(String path) => _player.preload(path: path);
+  Future<void> preload(String path, {String? mimeType}) =>
+      _player.preload(path: path, mimeType: mimeType);
 
   /// Plays the preloaded file.
   Future<void> playPreload() => _player.playPreload();

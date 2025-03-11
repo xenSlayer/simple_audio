@@ -1,5 +1,5 @@
 // This file is a part of simple_audio
-// Copyright (c) 2022-2023 Erikas Taroza <erikastaroza@gmail.com>
+// Copyright (c) 2022-2025 Erikas Taroza <erikastaroza@gmail.com>
 //
 // This program is free software: you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public License as
@@ -15,5 +15,5 @@
 // If not, see <https://www.gnu.org/licenses/>.
 
 mod api;
-mod bridge_generated; /* AUTO INJECTED BY flutter_rust_bridge. This line may not be accurate, and you can change it according to your needs. */
+mod frb_generated; /* AUTO INJECTED BY flutter_rust_bridge. This line may not be accurate, and you can change it according to your needs. */
 mod streams;

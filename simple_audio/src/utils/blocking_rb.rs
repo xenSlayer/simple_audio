@@ -1,5 +1,5 @@
 // This file is a part of simple_audio
-// Copyright (c) 2022-2023 Erikas Taroza <erikastaroza@gmail.com>
+// Copyright (c) 2022-2025 Erikas Taroza <erikastaroza@gmail.com>
 //
 // This program is free software: you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public License as
@@ -82,7 +82,7 @@ impl<T: Copy + Clone + Default + Sync + Send, Type> BlockingRb<T, Type>
         num_values == self.size
     }
 
-    fn is_empty(&self) -> bool
+    pub fn is_empty(&self) -> bool
     {
         let num_values = self.num_values.load(std::sync::atomic::Ordering::SeqCst);
         num_values == 0

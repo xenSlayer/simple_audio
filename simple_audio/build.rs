@@ -1,5 +1,5 @@
 // This file is a part of simple_audio
-// Copyright (c) 2022-2023 Erikas Taroza <erikastaroza@gmail.com>
+// Copyright (c) 2022-2025 Erikas Taroza <erikastaroza@gmail.com>
 //
 // This program is free software: you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public License as
@@ -13,23 +13,10 @@
 //
 // You should have received a copy of the GNU Lesser General Public License along with this program.
 // If not, see <https://www.gnu.org/licenses/>.
-
-#[allow(dead_code)]
-fn add_lib(name: impl AsRef<str>, _static: bool)
-{
-    #[cfg(not(feature = "test"))]
-    println!(
-        "cargo:rustc-link-lib={}{}",
-        if _static { "static=" } else { "" },
-        name.as_ref()
-    );
-}
-
 fn main()
 {
-    let target = std::env::var("TARGET").expect("ERR: Could not check the target for the build.");
-
+    let target = std::env::var("CARGO_CFG_TARGET_OS").unwrap();
     if target.contains("android") {
-        add_lib("c++_shared", false);
+        println!("cargo:rustc-link-lib=c++_shared");
     }
 }

@@ -1,5 +1,5 @@
 // This file is a part of simple_audio
-// Copyright (c) 2022-2023 Erikas Taroza <erikastaroza@gmail.com>
+// Copyright (c) 2022-2025 Erikas Taroza <erikastaroza@gmail.com>
 //
 // This program is free software: you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public License as
@@ -67,7 +67,7 @@ fn main() -> io::Result<()>
     let app = Arc::new(RwLock::new(App::new()));
     let thread_killer = unbounded::<bool>();
     let player = Player::new(thread_killer.1);
-    player.open(args[1].clone(), true).unwrap();
+    player.open(args[1].clone(), true, None).unwrap();
 
     // Listen to events
     let receiver_app = app.clone();

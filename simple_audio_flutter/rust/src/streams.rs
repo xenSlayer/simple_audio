@@ -1,5 +1,5 @@
 // This file is a part of simple_audio
-// Copyright (c) 2022-2023 Erikas Taroza <erikastaroza@gmail.com>
+// Copyright (c) 2022-2025 Erikas Taroza <erikastaroza@gmail.com>
 //
 // This program is free software: you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public License as
@@ -17,9 +17,11 @@
 use std::sync::{OnceLock, RwLock};
 
 use chrono::Duration;
-use flutter_rust_bridge::StreamSink;
 
-use crate::api::{Error, PlaybackState, ProgressState};
+use crate::{
+    api::api::{Error, PlaybackState, ProgressState},
+    frb_generated::StreamSink,
+};
 
 static PLAYBACK_STARTED_STREAM: OnceLock<RwLock<Option<StreamSink<Duration>>>> = OnceLock::new();
 
@@ -37,7 +39,7 @@ pub fn update_playback_started_stream(value: Duration)
 {
     if let Some(lock) = PLAYBACK_STARTED_STREAM.get() {
         if let Some(stream) = &*lock.read().unwrap() {
-            stream.add(value);
+            let _ = stream.add(value);
         }
     }
 }
@@ -58,7 +60,7 @@ pub fn update_playback_state_stream(value: PlaybackState)
 {
     if let Some(lock) = PLAYBACK_STATE_STREAM.get() {
         if let Some(stream) = &*lock.read().unwrap() {
-            stream.add(value);
+            let _ = stream.add(value);
         }
     }
 }
@@ -79,7 +81,7 @@ pub fn update_progress_state_stream(value: ProgressState)
 {
     if let Some(lock) = PROGRESS_STATE_STREAM.get() {
         if let Some(stream) = &*lock.read().unwrap() {
-            stream.add(value);
+            let _ = stream.add(value);
         }
     }
 }
@@ -100,7 +102,7 @@ pub fn update_error_stream(value: Error)
 {
     if let Some(lock) = ERROR_STREAM.get() {
         if let Some(stream) = &*lock.read().unwrap() {
-            stream.add(value);
+            let _ = stream.add(value);
         }
     }
 }

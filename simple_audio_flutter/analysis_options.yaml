@@ -1,9 +1,11 @@
 include: package:flutter_lints/flutter.yaml
 
-analyzer: 
-  exclude: 
-    - lib/src/bridge_*.dart
+analyzer:
+  exclude:
+    - lib/src/rust
 
 linter:
   rules:
     require_trailing_commas: true
+    prefer_double_quotes: true
+    prefer_relative_imports: true

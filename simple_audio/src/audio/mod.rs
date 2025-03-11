@@ -1,5 +1,5 @@
 // This file is a part of simple_audio
-// Copyright (c) 2022-2023 Erikas Taroza <erikastaroza@gmail.com>
+// Copyright (c) 2022-2025 Erikas Taroza <erikastaroza@gmail.com>
 //
 // This program is free software: you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public License as
@@ -15,9 +15,7 @@
 // If not, see <https://www.gnu.org/licenses/>.
 
 pub mod controls;
-mod cpal_output;
 pub mod decoder;
 mod dsp;
-#[cfg(feature = "opus")]
-mod opus;
+mod output;
 pub mod sources;

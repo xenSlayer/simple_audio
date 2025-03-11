@@ -1,3 +1,30 @@
+## 2.0.6
+
+- Added the ability to specify a mime type when opening a file.
+- Fixed old samples being played before new ones when the player is paused and a different file is opened and played.
+- Fixed a small portion of the file not being played at the end.
+
+## 2.0.5
+
+- Fix mono files being played at 2x speed
+
+## 2.0.4
+
+- Fix race condition when setting seek ts when opening a new file.
+- Enable all Cargo features by default
+
+## 2.0.3
+
+- Fix missing symbol error when running on Android
+
+## 2.0.2
+
+- Reset seek ts in decoder when opening new file.
+- Update FRB to 2.7.0.
+- Downgrade resampler dependency that caused unexpected results.
+- Fixed clippy suggestions.
+- Fix iOS build
+
 ## 2.0.1
 
 - Support Gradle 8

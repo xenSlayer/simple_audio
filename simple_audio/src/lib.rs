@@ -1,5 +1,5 @@
 // This file is a part of simple_audio
-// Copyright (c) 2022-2023 Erikas Taroza <erikastaroza@gmail.com>
+// Copyright (c) 2022-2025 Erikas Taroza <erikastaroza@gmail.com>
 //
 // This program is free software: you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public License as
@@ -48,7 +48,7 @@ use types::*;
 
 use audio::{
     controls::{Controls, DecoderEvent},
-    decoder::Decoder,
+    decoder::decoder::Decoder,
 };
 
 pub struct Player
@@ -173,7 +173,11 @@ impl Player
     }
 
     /// Opens a file or network resource for reading and playing.
-    pub fn open(&self, path: String, autoplay: bool) -> Result<(), Error>
+    ///
+    /// Optionally specify a mime type if the decoder cannot open the file
+    /// because it cannot create the format reader.
+    pub fn open(&self, path: String, autoplay: bool, mime_type: Option<String>)
+        -> Result<(), Error>
     {
         let buffer_signal = Arc::new(AtomicBool::new(false));
         let source = match self.source_from_path(path, buffer_signal.clone()) {
@@ -181,11 +185,12 @@ impl Player
             Err(err) => return Err(Error::Open(err.to_string())),
         };
 
+        self.controls.set_seek_ts(None);
         let send_event = self
             .controls
             .decoder_event_handler()
             .0
-            .send(DecoderEvent::Open(source, buffer_signal));
+            .send(DecoderEvent::Open(source, buffer_signal, mime_type));
 
         if let Err(err) = send_event {
             return Err(Error::Open(err.to_string()));
@@ -207,7 +212,10 @@ impl Player
     /// Use this method if you want gapless playback. It reduces
     /// the time spent loading between tracks (especially important
     /// for streaming network files).
-    pub fn preload(&self, path: String) -> Result<(), Error>
+    ///
+    /// Optionally specify a mime type if the decoder cannot open the file
+    /// because it cannot create the format reader.
+    pub fn preload(&self, path: String, mime_type: Option<String>) -> Result<(), Error>
     {
         let buffer_signal = Arc::new(AtomicBool::new(false));
         let source = match self.source_from_path(path, buffer_signal.clone()) {
@@ -219,7 +227,7 @@ impl Player
             .controls
             .decoder_event_handler()
             .0
-            .send(DecoderEvent::Preload(source, buffer_signal));
+            .send(DecoderEvent::Preload(source, buffer_signal, mime_type));
 
         match send_event {
             Ok(_) => Ok(()),
@@ -332,7 +340,7 @@ mod tests
         let thread_killer = unbounded();
         let player = Player::new(thread_killer.1);
         player.set_volume(0.1);
-        player.open("/home/erikas/Downloads/1.mp3".to_string(), true)?;
+        player.open("/home/erikas/Downloads/1.mp3".to_string(), true, None)?;
         thread::sleep(Duration::from_secs(100));
         Ok(())
     }
@@ -347,6 +355,7 @@ mod tests
         player.open(
             "https://dl.espressif.com/dl/audio/ff-16b-2c-44100hz.mp3".to_string(),
             true,
+            None,
         )?;
         player.set_volume(0.1);
         thread::sleep(Duration::from_secs(10));
@@ -362,7 +371,7 @@ mod tests
     {
         let thread_killer = unbounded();
         let player = Player::new(thread_killer.1);
-        player.open("https://cf-hls-media.sndcdn.com/playlist/x7uSGJp4rku7.128.mp3/playlist.m3u8?Policy=eyJTdGF0ZW1lbnQiOlt7IlJlc291cmNlIjoiKjovL2NmLWhscy1tZWRpYS5zbmRjZG4uY29tL3BsYXlsaXN0L3g3dVNHSnA0cmt1Ny4xMjgubXAzL3BsYXlsaXN0Lm0zdTgqIiwiQ29uZGl0aW9uIjp7IkRhdGVMZXNzVGhhbiI6eyJBV1M6RXBvY2hUaW1lIjoxNjc1ODA1NTM2fX19XX0_&Signature=Cd6o8KT6AEoLaIHok~438sourFeoHywCDdG09MS38qxmWLsKyJU-eFHOdh8jccvfPaWfjYkEEqfnpp6EMINXP3f99GAwWFPGMrp43lqz2JAL5MBUAc1plLLm1KV~t5Vy5ON6M1X~Fj6nFV7vdD7mGR84lfeafFmXBP4U4oZATI9GoPrUkEgVtCViDg6kBMVKk77e144LFwzZtkiSHj-S7umU5Qf9r2lDCqYaHVVoWSMtJBWMXoKQZCjdR5e6pqINcRQA-348wX8C9bonQGeoCZ3xRQWPq0ZtznmDKdZ-p91YJL8o4LNSPOMreu-ELsXhoftd7iKpZoG7~YwX2Oxg5A__&Key-Pair-Id=APKAI6TU7MMXM5DG6EPQ".to_string(), true)?;
+        player.open("https://cf-hls-media.sndcdn.com/playlist/x7uSGJp4rku7.128.mp3/playlist.m3u8?Policy=eyJTdGF0ZW1lbnQiOlt7IlJlc291cmNlIjoiKjovL2NmLWhscy1tZWRpYS5zbmRjZG4uY29tL3BsYXlsaXN0L3g3dVNHSnA0cmt1Ny4xMjgubXAzL3BsYXlsaXN0Lm0zdTgqIiwiQ29uZGl0aW9uIjp7IkRhdGVMZXNzVGhhbiI6eyJBV1M6RXBvY2hUaW1lIjoxNjc1ODA1NTM2fX19XX0_&Signature=Cd6o8KT6AEoLaIHok~438sourFeoHywCDdG09MS38qxmWLsKyJU-eFHOdh8jccvfPaWfjYkEEqfnpp6EMINXP3f99GAwWFPGMrp43lqz2JAL5MBUAc1plLLm1KV~t5Vy5ON6M1X~Fj6nFV7vdD7mGR84lfeafFmXBP4U4oZATI9GoPrUkEgVtCViDg6kBMVKk77e144LFwzZtkiSHj-S7umU5Qf9r2lDCqYaHVVoWSMtJBWMXoKQZCjdR5e6pqINcRQA-348wX8C9bonQGeoCZ3xRQWPq0ZtznmDKdZ-p91YJL8o4LNSPOMreu-ELsXhoftd7iKpZoG7~YwX2Oxg5A__&Key-Pair-Id=APKAI6TU7MMXM5DG6EPQ".to_string(), true, None)?;
         player.set_volume(0.1);
         thread::sleep(Duration::from_secs(10));
         player.seek(std::time::Duration::from_secs(90));
@@ -380,7 +389,7 @@ mod tests
         let player = Player::new(thread_killer.1);
         player.set_volume(0.5);
 
-        player.open("/home/erikas/Music/1.mp3".to_string(), true)?;
+        player.open("/home/erikas/Music/1.mp3".to_string(), true, None)?;
         thread::sleep(Duration::from_secs(1));
         println!("Pausing now");
         player.pause();
@@ -396,7 +405,7 @@ mod tests
     {
         let thread_killer = unbounded();
         let player = Player::new(thread_killer.1);
-        player.open("/home/erikas/Music/1.mp3".to_string(), true)?;
+        player.open("/home/erikas/Music/1.mp3".to_string(), true, None)?;
         thread::sleep(Duration::from_secs(1));
         println!("Changing volume now");
         player.set_volume(0.2);
@@ -410,7 +419,7 @@ mod tests
         let thread_killer = unbounded();
         let player = Player::new(thread_killer.1);
         player.set_volume(0.5);
-        player.open("/home/erikas/Music/1.mp3".to_string(), true)?;
+        player.open("/home/erikas/Music/1.mp3".to_string(), true, None)?;
         thread::sleep(Duration::from_secs(1));
         println!("Seeking now");
         player.seek(std::time::Duration::from_secs(50));
@@ -425,16 +434,16 @@ mod tests
         let player = Player::new(thread_killer.1);
         player.set_volume(0.5);
 
-        player.open("/home/erikas/Music/1.mp3".to_string(), true)?;
+        player.open("/home/erikas/Music/1.mp3".to_string(), true, None)?;
         player.seek(std::time::Duration::from_secs(10));
         thread::sleep(Duration::from_secs(5));
         println!("Stopping now");
         player.stop();
         println!("Playing now");
-        player.open("/home/erikas/Music/2.mp3".to_string(), true)?;
+        player.open("/home/erikas/Music/2.mp3".to_string(), true, None)?;
         player.stop();
         thread::sleep(Duration::from_millis(50));
-        player.open("/home/erikas/Music/1.mp3".to_string(), true)?;
+        player.open("/home/erikas/Music/1.mp3".to_string(), true, None)?;
         player.play();
         thread::sleep(Duration::from_secs(10));
         Ok(())
@@ -447,17 +456,17 @@ mod tests
 
         let thread_killer = unbounded();
         let player = Player::new(thread_killer.1);
-        player.open(path.clone(), true)?;
+        player.open(path.clone(), true, None)?;
         player.set_volume(0.5);
         println!("Preloading");
-        player.preload(path.clone())?;
+        player.preload(path.clone(), None)?;
         thread::sleep(Duration::from_secs(5));
         println!("Playing preloaded file.");
         player.stop();
         player.play_preload();
         thread::sleep(Duration::from_secs(10));
         player.stop();
-        player.open(path, true)?;
+        player.open(path, true, None)?;
         thread::sleep(Duration::from_secs(10));
         Ok(())
     }
@@ -469,7 +478,7 @@ mod tests
         let thread_killer = unbounded();
         let player = Player::new(thread_killer.1);
         player.set_volume(0.1);
-        player.open("/home/erikas/Downloads/silent.aac".to_string(), true)?;
+        player.open("/home/erikas/Downloads/silent.aac".to_string(), true, None)?;
         thread::sleep(Duration::from_secs(3));
         Ok(())
     }

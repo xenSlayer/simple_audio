@@ -1,5 +1,5 @@
 # This file is a part of simple_audio
-# Copyright (c) 2022-2023 Erikas Taroza <erikastaroza@gmail.com>
+# Copyright (c) 2022-2025 Erikas Taroza <erikastaroza@gmail.com>
 #
 # This program is free software: you can redistribute it and/or
 # modify it under the terms of the GNU Lesser General Public License as
@@ -58,9 +58,9 @@ jobs:
           sudo apt install libasound2-dev
 
       - name: Build
-        run: python ./plugin_tool.py -b ${{ matrix.target }}
+        run: dart run cli build ${{ matrix.target }} -v
       - name: Upload Artifacts
-        uses: actions/upload-artifact@v3.1.2
+        uses: actions/upload-artifact@v4.5.0
         with:
           name: ${{ matrix.target }}
           path: ${{ matrix.path }}
@@ -72,7 +72,7 @@ jobs:
     steps:
       # Downloading unzips the artifacts so they have to be rezipped.
       - name: Download Artifacts
-        uses: actions/download-artifact@v2.1.1
+        uses: actions/download-artifact@v4.1.7
       - name: Create Archives
         run: |
           tar -C linux -czvf linux.tar.gz .

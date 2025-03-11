@@ -1,5 +1,5 @@
 // This file is a part of simple_audio
-// Copyright (c) 2022-2023 Erikas Taroza <erikastaroza@gmail.com>
+// Copyright (c) 2022-2025 Erikas Taroza <erikastaroza@gmail.com>
 //
 // This program is free software: you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public License as
@@ -113,14 +113,14 @@ impl Default for Controls
 /// Messages to communicate with the decoder from the player.
 pub enum DecoderEvent
 {
-    Open(Box<dyn MediaSource>, Arc<AtomicBool>),
+    Open(Box<dyn MediaSource>, Arc<AtomicBool>, Option<String>),
     Play,
     Pause,
     Stop,
     /// Called by `cpal_output` in the event the device outputting
     /// audio was changed/disconnected.
     DeviceChanged,
-    Preload(Box<dyn MediaSource>, Arc<AtomicBool>),
+    Preload(Box<dyn MediaSource>, Arc<AtomicBool>, Option<String>),
     PlayPreload,
     ClearPreload,
 }
